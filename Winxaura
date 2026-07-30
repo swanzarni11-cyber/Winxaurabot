@@ -1,0 +1,175 @@
+import logging
+import os
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import (
+    Application,
+    CallbackQueryHandler,
+    CommandHandler,
+    ContextTypes,
+    MessageHandler,
+    filters,
+)
+
+# Logging သတ်မှတ်ခြင်း
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO,
+)
+
+# ၁။ /start Command ပို့လျှင် ပြသမည့် Welcome Menu
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "💎 MLBB Diamonds Top Up", callback_data="topup"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "📋 MLBB Diamonds Price List", callback_data="pricelist"
+            )
+        ],
+        [InlineKeyboardButton("🛡️ Scam ID Check", callback_data="scamcheck")],
+        [InlineKeyboardButton("💳 Payment Methods", callback_data="payment")],
+        [
+            InlineKeyboardButton(
+                "🚫 Live Auto Ban Status", callback_data="autoban"
+            )
+        ],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    welcome_text = (
+        "👋 **Welcome to Winxaura Bot!**\n\n"
+        "အောက်ပါ ခလုတ်များမှ ကြိုက်နှစ်သက်ရာ ဝန်ဆောင်မှုကို နှိပ်၍ အသုံးပြုနိုင်ပါသည်:"
+    )
+
+    if update.message:
+        await update.message.reply_text(
+            welcome_text, reply_markup=reply_markup, parse_mode="Markdown"
+        )
+    elif update.callback_query:
+        await update.callback_query.message.edit_text(
+            welcome_text, reply_markup=reply_markup, parse_mode="Markdown"
+        )
+
+
+# ၂။ ခလုတ်များ (Buttons) ကို နှိပ်သည့်အခါ တုံ့ပြန်မည့် စနစ်
+async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    # Back Button (ပင်မ စာမျက်နှာသို့ ပြန်သွားရန်)
+    back_button = InlineKeyboardMarkup(
+        [[InlineKeyboardButton("🔙 Main Menu သို့ ပြန်သွားရန်", callback_data="main_menu")]]
+    )
+
+    if query.data == "topup":
+        text = (
+            "💎 **MLBB Diamonds Top Up**\n\n"
+            "စိန်ဖြည့်ရန်အတွက် သင့်၏ **Player ID** နှင့် **Server ID** ကို အောက်ပါအတိုင်း ပို့ပေးပါ:\n"
+            "👉 `12345678 (1234)`\n\n"
+            "မိမိဝယ်ယူလိုသော Diamond ပမာဏကိုလည်း ရေးသားပေးပါ။"
+        )
+        await query.message.edit_text(
+            text, reply_markup=back_button, parse_mode="Markdown"
+        )
+
+    elif query.data == "pricelist":
+        text = (
+            "📋 **MLBB Diamonds Price List**\n\n"
+            "🔹 86 Diamonds - 3,500 Ks\n"
+            "🔹 172 Diamonds - 7,000 Ks\n"
+            "🔹 257 Diamonds - 10,500 Ks\n"
+            "🔹 706 Diamonds - 28,000 Ks\n"
+            "🔹 Weekly Diamond Pass - 5,500 Ks\n\n"
+            "*(ဈေးနှုန်းများ အပြောင်းအလဲ ရှိနိုင်ပါသည်)*"
+        )
+        await query.message.edit_text(
+            text, reply_markup=back_button, parse_mode="Markdown"
+        )
+
+    elif query.data == "scamcheck":
+        text = (
+            "🛡️ **Scam ID Check**\n\n"
+            "မသင်္ကာသော Scam ID သို့မဟုတ် ဖုန်းနံပါတ်ကို စစ်ဆေးရန် စာရိုက်၍ ပို့ပေးပါ။\n\n"
+            "ဥပမာ - `1839642657 scam id` သို့မဟုတ် ဖုန်းနံပါတ် ပို့ပေးပါ။"
+        )
+        await query.message.edit_text(
+            text, reply_markup=back_button, parse_mode="Markdown"
+        )
+
+    elif query.data == "payment":
+        text = (
+            "💳 **Payment Methods**\n\n"
+            "ငွေပေးချေနိုင်သော အကောင့်များ:\n\n"
+            "📱 **KPay:** `09xxxxxxxx` (Winxaura)\n"
+            "📱 **WavePay:** `09xxxxxxxx` (Winxaura)\n"
+            "📱 **AYA Pay:** `09xxxxxxxx` (Winxaura)\n\n"
+            "⚠️ ငွေလွှဲပြီးပါက လုပ်ဆောင်ချက် အမှတ်စဉ် (Transaction Slip/Screenshot) ကို ပို့ပေးပါရန်။"
+        )
+        await query.message.edit_text(
+            text, reply_markup=back_button, parse_mode="Markdown"
+        )
+
+    elif query.data == "autoban":
+        text = (
+            "🚫 **Live Auto Ban System**\n\n"
+            "စနစ်သည် စည်းကမ်းဖောက်ဖျက်သူများနှင့် လိမ်လည်သူများ (Scammers) ကို "
+            "အလိုအလျောက် Ban ပြုလုပ်ပေးနေပါသည်။\n\n"
+            "ဂရုထဲတွင် မဆီမဆိုင် စာများခဏခဏ ပို့ပါက Auto Ban ဖြစ်သွားနိုင်ပါသည်။"
+        )
+        await query.message.edit_text(
+            text, reply_markup=back_button, parse_mode="Markdown"
+        )
+
+    elif query.data == "main_menu":
+        await start(update, context)
+
+
+# ၃။ User မှ စာရိုက်ပို့လိုက်ပါက တုံ့ပြန်မည့် စနစ် (Text Handler)
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text.lower()
+
+    # စာရိုက်လိုက်လျှင်လည်း Menu ပြန်ပြပေးခြင်း
+    if (
+        "top up" in text
+        or "topup" in text
+        or "price" in text
+        or "scam" in text
+        or "payment" in text
+    ):
+        await start(update, context)
+    else:
+        await update.message.reply_text(
+            "ကျေးဇူးပြု၍ အောက်ပါ Menu ခလုတ်များကို နှိပ်၍ အသုံးပြုပေးပါရန်:"
+        )
+        await start(update, context)
+
+
+# Main Function
+def main():
+    # Environment Variable မှ BOT_TOKEN ကို ယူခြင်း
+    TOKEN = os.environ.get("BOT_TOKEN")
+
+    if not TOKEN:
+        print(
+            "Error: BOT_TOKEN မရှိသေးပါ! Railway Variables မှာ ထည့်ပေးပါ။"
+        )
+        return
+
+    app = Application.builder().token(TOKEN).build()
+
+    # Handlers များ ထည့်သွင်းခြင်း
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(button_click))
+    app.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
+    )
+
+    print("Bot is running...")
+    app.run_polling()
+
+
+if __name__ == "__main__":
+    main()
